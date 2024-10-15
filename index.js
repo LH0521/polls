@@ -7,7 +7,7 @@ const firebaseConfig = {
     appId: "1:497883484409:web:0f430f5861017fa1bc9228"
 };
 
-const app = firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
@@ -16,8 +16,13 @@ document.getElementById('login').addEventListener('click', () => {
     auth.signInWithPopup(provider)
         .then(result => {
             const user = result.user;
+
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('app-section').style.display = 'block';
+
+            document.getElementById('picture').src = user.photoURL || 'default-avatar.png';
+            document.getElementById('username').textContent = user.displayName;
+
             loadPolls(user);
         })
         .catch(error => console.log(error));
@@ -25,17 +30,20 @@ document.getElementById('login').addEventListener('click', () => {
 
 document.getElementById('logout').addEventListener('click', () => {
     auth.signOut().then(() => {
-        document.getElementById('app-section').style.display = 'none';
         document.getElementById('auth-section').style.display = 'flex';
+        document.getElementById('app-section').style.display = 'none';
     });
 });
+
 
 function loadPolls(user) {
     db.collection('Polls').get().then(snapshot => {
         const pollList = document.getElementById('poll-list');
         pollList.innerHTML = '';
+
         snapshot.forEach(doc => {
             const pollData = doc.data();
+
             pollList.innerHTML += `
                 <div class="card mb-4">
                     <div class="card-body">
@@ -57,7 +65,7 @@ function loadPolls(user) {
 function createOptions(pollId, pollData) {
     let optionsHTML = '';
     const totalVotes = Object.keys(pollData.Options).reduce((sum, option) => sum + pollData.Options[option].length, 0);
-
+    
     for (const option in pollData.Options) {
         const votes = pollData.Options[option].length;
         const percent = totalVotes ? (votes / totalVotes) * 100 : 0;
