@@ -35,6 +35,19 @@ document.getElementById('logout').addEventListener('click', () => {
     });
 });
 
+auth.signInWithPopup(provider)
+    .then(result => {
+        const user = result.user;
+
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('app-section').style.display = 'block';
+        document.getElementById('picture').src = user.photoURL || 'default-avatar.png';
+        document.getElementById('username').textContent = user.displayName;
+
+        loadPolls(user);
+    })
+    .catch(error => console.log(error));
+
 
 function loadPolls(user) {
     db.collection('Polls').get().then(snapshot => {
@@ -65,7 +78,7 @@ function loadPolls(user) {
 function createOptions(pollId, pollData) {
     let optionsHTML = '';
     const totalVotes = Object.keys(pollData.Options).reduce((sum, option) => sum + pollData.Options[option].length, 0);
-    
+
     for (const option in pollData.Options) {
         const votes = pollData.Options[option].length;
         const percent = totalVotes ? (votes / totalVotes) * 100 : 0;
